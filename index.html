@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Family_Learning</title>
-    <link rel="stylesheet" href="./styles.css?v=6" />
+    <link rel="stylesheet" href="./styles.css?v=7" />
   </head>
   <body>
     <header class="app-topbar" aria-label="Learner and earnings">
@@ -71,6 +71,7 @@
             <div id="timer-fill" class="timer-fill"></div>
           </div>
           <div class="reward-preview" id="reward-preview">Next correct answer: +1 penny</div>
+          <div id="streak-badge" class="streak-badge">Build a 3-answer streak for bonus pennies.</div>
           <p id="question-text" class="question-text"></p>
           <form id="answer-form" class="answer-form" autocomplete="off">
             <label class="sr-only" for="answer-input">Answer</label>
@@ -128,6 +129,10 @@
         <div class="progress-track" aria-hidden="true">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
+        <section class="mission-card" aria-live="polite">
+          <span>Next mission</span>
+          <strong id="mission-text">Earn 10 pennies today.</strong>
+        </section>
       </aside>
 
       <aside class="report-area" aria-labelledby="daily-report-title">
@@ -176,6 +181,6 @@
       <span class="coin" aria-hidden="true"></span>
     </template>
 
-    <script src="./script.js?v=6"></script>
+    <script src="./script.js?v=7"></script>
   </body>
 </html>

@@ -20,6 +20,8 @@ const reportDate = document.querySelector("#report-date");
 const historyList = document.querySelector("#history-list");
 const backupStatus = document.querySelector("#backup-status");
 const rewardPreview = document.querySelector("#reward-preview");
+const streakBadge = document.querySelector("#streak-badge");
+const missionText = document.querySelector("#mission-text");
 const coinJar = document.querySelector("#coin-jar");
 const coinTemplate = document.querySelector("#coin-template");
 const progressFill = document.querySelector("#progress-fill");
@@ -61,6 +63,7 @@ const state = {
   timeLeft: QUESTION_SECONDS,
   timerId: null,
   questionStartedAt: Date.now(),
+  lastTickSecond: QUESTION_SECONDS,
   soundOn: false,
   audioContext: null,
   profile: loadProfile(),
@@ -71,6 +74,13 @@ const praise = [
   "Correct. That streak is getting stronger.",
   "Nice focus. Pennies added.",
   "Great answer. Keep the sequence going.",
+];
+
+const missions = [
+  { pennies: 10, label: "Earn 10 pennies today." },
+  { pennies: 25, label: "Reach 25 pennies today for a strong session." },
+  { pennies: 50, label: "Hit 50 pennies today for a bonus-level day." },
+  { pennies: 100, label: "Go big: 100 pennies today." },
 ];
 
 const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -258,6 +268,7 @@ function showQuestion() {
   state.current = makeQuestion();
   state.answered = false;
   state.timeLeft = QUESTION_SECONDS;
+  state.lastTickSecond = QUESTION_SECONDS;
   state.questionStartedAt = Date.now();
   questionText.textContent = state.current.text;
   questionText.classList.toggle("word-problem", Boolean(state.current.word));
@@ -297,6 +308,7 @@ function handleCorrect() {
   const speedBonus = secondsUsed <= QUICK_SECONDS ? QUICK_BONUS : 0;
   const earned = nextReward() + speedBonus;
   const today = getToday();
+  const previousEarnedToday = today.earned;
 
   state.answered = true;
   state.sessionPennies += earned;
@@ -312,7 +324,11 @@ function handleCorrect() {
   setFeedback(`${praise[rand(0, praise.length - 1)]} +${earned} pennies${speedBonus ? " with speed bonus." : "."}`, "good");
   animateRewardChange(speedBonus ? `+${earned} fast` : `+${earned}`);
   playSound(speedBonus ? "fast" : "correct");
-  drawJar();
+  window.setTimeout(() => playSound("drop"), 140);
+  drawJar(Math.min(earned, 8));
+  if (state.streak % 5 === 0 || crossedMission(previousEarnedToday, today.earned)) {
+    celebrateBurst();
+  }
   updateStats();
   answerInput.disabled = true;
   window.setTimeout(showQuestion, 950);
@@ -373,6 +389,8 @@ function updateStats() {
   roundLabel.textContent = `Question ${state.round}`;
   streakLabel.textContent = `Streak: ${state.streak}`;
   rewardPreview.textContent = `Next correct answer: +${reward} ${reward === 1 ? "penny" : "pennies"} (${setting.label}); quick answer adds +${QUICK_BONUS}`;
+  streakBadge.textContent = streakMessage();
+  missionText.textContent = missionMessage(today.earned);
   progressFill.style.width = `${((state.profile.availablePennies % PENNIES_PER_DOLLAR) / PENNIES_PER_DOLLAR) * 100}%`;
   redeemButton.disabled = state.profile.availablePennies === 0;
   redeemAllButton.disabled = state.profile.availablePennies === 0;
@@ -385,6 +403,10 @@ function startTimer() {
   state.timerId = window.setInterval(() => {
     state.timeLeft = Math.max(0, state.timeLeft - 1);
     updateTimerDisplay();
+    if (state.timeLeft <= 5 && state.timeLeft > 0 && state.timeLeft !== state.lastTickSecond) {
+      state.lastTickSecond = state.timeLeft;
+      playSound("tick");
+    }
     if (state.timeLeft === 0) {
       stopTimer();
       const today = getToday();
@@ -394,6 +416,7 @@ function startTimer() {
       saveProfile();
       updateStats();
       setFeedback("Time is up. No penny lost, but the streak resets.", "try");
+      playSound("timeout");
       window.setTimeout(showQuestion, 1000);
     }
   }, 1000);
@@ -422,9 +445,10 @@ function animateRewardChange(label) {
   window.setTimeout(() => pop.remove(), 900);
 }
 
-function drawJar() {
+function drawJar(highlightCount = 0) {
   coinJar.querySelectorAll(".coin").forEach((coin) => coin.remove());
   const jarCoins = Math.min(40, state.profile.availablePennies % PENNIES_PER_DOLLAR);
+  const firstHighlight = Math.max(0, jarCoins - highlightCount);
 
   for (let index = 0; index < jarCoins; index += 1) {
     const coin = coinTemplate.content.firstElementChild.cloneNode(true);
@@ -432,8 +456,46 @@ function drawJar() {
     const row = Math.floor(index / 8);
     coin.style.left = `${12 + column * 22}px`;
     coin.style.bottom = `${8 + row * 24}px`;
+    coin.classList.toggle("coin-drop", index >= firstHighlight);
+    coin.style.setProperty("--drop-delay", `${(index - firstHighlight) * 55}ms`);
     coinJar.appendChild(coin);
   }
+}
+
+function streakMessage() {
+  if (state.streak >= 20) return "Legend streak: +4 bonus pennies on each correct answer.";
+  if (state.streak >= 10) return "Power streak: +3 bonus pennies now.";
+  if (state.streak >= 5) return "Hot streak: +2 bonus pennies now.";
+  if (state.streak >= 3) return "Streak bonus unlocked: +1 penny.";
+  return `${Math.max(0, 3 - state.streak)} more correct in a row unlocks a streak bonus.`;
+}
+
+function nextMissionTarget(earnedToday) {
+  return missions.find((mission) => earnedToday < mission.pennies)?.pennies ?? 100;
+}
+
+function crossedMission(before, after) {
+  return missions.some((mission) => before < mission.pennies && after >= mission.pennies);
+}
+
+function missionMessage(earnedToday) {
+  const mission = missions.find((item) => earnedToday < item.pennies);
+  if (!mission) return "Amazing day. Every extra penny is victory lap money.";
+  return `${mission.label} ${mission.pennies - earnedToday}p to go.`;
+}
+
+function celebrateBurst() {
+  const colors = ["#f7bd42", "#e7606f", "#3777d5", "#2f9b65"];
+  for (let index = 0; index < 16; index += 1) {
+    const piece = document.createElement("span");
+    piece.className = "burst-piece";
+    piece.style.setProperty("--burst-x", `${rand(-120, 120)}px`);
+    piece.style.setProperty("--burst-y", `${rand(-150, -40)}px`);
+    piece.style.setProperty("--burst-color", colors[index % colors.length]);
+    coinJar.appendChild(piece);
+    window.setTimeout(() => piece.remove(), 900);
+  }
+  playSound("celebrate");
 }
 
 function redeemReward(redeemAll = false) {
@@ -494,8 +556,12 @@ function playSound(type) {
   const patterns = {
     correct: [660, 880],
     fast: [880, 1175, 1320],
+    drop: [1046, 784],
+    tick: [330],
+    timeout: [196, 164],
     wrong: [220, 165],
     redeem: [523, 659, 784, 1046],
+    celebrate: [659, 784, 988, 1318],
     toggle: [440],
   };
   const notes = patterns[type] ?? patterns.correct;
@@ -503,15 +569,15 @@ function playSound(type) {
     const start = state.audioContext.currentTime + index * 0.075;
     const oscillator = state.audioContext.createOscillator();
     const gain = state.audioContext.createGain();
-    oscillator.type = type === "wrong" ? "sawtooth" : "sine";
+    oscillator.type = type === "wrong" || type === "tick" ? "triangle" : "sine";
     oscillator.frequency.setValueAtTime(frequency, start);
     gain.gain.setValueAtTime(0.001, start);
-    gain.gain.exponentialRampToValueAtTime(0.12, start + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.14);
+    gain.gain.exponentialRampToValueAtTime(type === "tick" ? 0.05 : 0.12, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + (type === "tick" ? 0.07 : 0.14));
     oscillator.connect(gain);
     gain.connect(state.audioContext.destination);
     oscillator.start(start);
-    oscillator.stop(start + 0.16);
+    oscillator.stop(start + (type === "tick" ? 0.08 : 0.16));
   });
 }
 
