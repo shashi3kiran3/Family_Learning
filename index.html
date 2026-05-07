@@ -7,28 +7,32 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <header class="app-topbar" aria-label="Learner and earnings">
+      <div class="brand-lockup">
+        <p class="eyebrow">Family math rewards</p>
+        <h1 id="game-title">Family_Learning</h1>
+      </div>
+      <div class="profile-tabs" role="tablist" aria-label="Choose learner">
+        <button class="profile-tab is-active" type="button" data-user="harshith" role="tab" aria-selected="true">Harshith</button>
+        <button class="profile-tab is-disabled" type="button" data-user="charith" role="tab" aria-selected="false" disabled>Charith</button>
+      </div>
+      <div class="overall-earning" aria-live="polite">
+        <span>Overall earning</span>
+        <strong id="dollar-total">$0.00</strong>
+      </div>
+    </header>
+
     <main class="game-shell">
       <section class="play-area" aria-labelledby="game-title">
         <div class="title-row">
           <div>
-            <p class="eyebrow">Family math rewards</p>
-            <h1 id="game-title">Family_Learning</h1>
+            <p class="section-label">Harshith's challenge</p>
+            <h2>Math Quest</h2>
           </div>
           <div class="score-card" aria-live="polite">
             <span class="score-label">Session</span>
             <strong id="session-pennies">0p</strong>
           </div>
-        </div>
-
-        <div class="profile-row" role="group" aria-label="Choose learner">
-          <button class="profile-button is-active" type="button" data-user="harshith">
-            <span>Harshith</span>
-            <small>Active</small>
-          </button>
-          <button class="profile-button is-disabled" type="button" data-user="charith" disabled>
-            <span>Charith</span>
-            <small>Coming soon</small>
-          </button>
         </div>
 
         <div class="level-row" role="group" aria-label="Choose difficulty">
@@ -68,14 +72,15 @@
       <aside class="reward-area" aria-label="Reward jar">
         <div class="money-board">
           <div>
-            <span>Lifetime reward</span>
-            <strong id="dollar-total">$0.00</strong>
+            <span>Redeemable</span>
+            <strong id="available-dollars">$0.00</strong>
           </div>
           <div>
             <span>Pennies saved</span>
-            <strong id="lifetime-pennies">0</strong>
+            <strong id="available-pennies">0</strong>
           </div>
         </div>
+        <button id="redeem-button" class="redeem-button" type="button">Redeem reward</button>
         <div class="jar-scene">
           <svg class="coin-spark" viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="60" r="46" fill="#f6be4f" />

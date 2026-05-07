@@ -42,6 +42,74 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.app-topbar {
+  display: grid;
+  grid-template-columns: minmax(210px, 1fr) minmax(240px, 0.9fr) minmax(160px, auto);
+  gap: 16px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 0 0;
+  align-items: end;
+}
+
+.brand-lockup {
+  min-width: 0;
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 2px solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 28px rgba(32, 49, 63, 0.12);
+}
+
+.profile-tab {
+  min-height: 44px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: transparent;
+  font-weight: 900;
+}
+
+.profile-tab.is-active {
+  color: #fff;
+  background: var(--blue);
+}
+
+.profile-tab.is-disabled {
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.overall-earning {
+  min-width: 158px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  text-align: right;
+  background: #fff3c5;
+  border: 2px solid #f2c75d;
+  box-shadow: 0 10px 28px rgba(132, 86, 18, 0.14);
+}
+
+.overall-earning span {
+  display: block;
+  color: #855b16;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.overall-earning strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
 .game-shell {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
@@ -49,7 +117,7 @@ button:disabled {
   width: min(1120px, calc(100% - 32px));
   min-height: 100vh;
   margin: 0 auto;
-  padding: 24px 0;
+  padding: 18px 0 24px;
   align-items: center;
 }
 
@@ -87,6 +155,21 @@ h1 {
   letter-spacing: 0;
 }
 
+h2 {
+  margin: 0;
+  font-size: clamp(1.65rem, 4vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.section-label {
+  margin: 0 0 6px;
+  color: var(--blue);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .score-card {
   min-width: 108px;
   padding: 10px 12px;
@@ -109,61 +192,25 @@ h1 {
   line-height: 1;
 }
 
-.profile-row,
 .level-row {
   display: grid;
   gap: 10px;
 }
 
-.profile-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 24px 0 12px;
-}
-
 .level-row {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: 16px;
+  margin: 24px 0 16px;
 }
 
-.profile-button,
 .level-button,
 .answer-form button,
-.secondary-button {
+.secondary-button,
+.redeem-button {
   min-height: 46px;
   border-radius: 8px;
   font-weight: 900;
   color: var(--ink);
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-}
-
-.profile-button {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: #e8f3fb;
-  border: 2px solid #c8dfed;
-}
-
-.profile-button small {
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 900;
-}
-
-.profile-button.is-active {
-  color: #fff;
-  background: var(--blue);
-  border-color: var(--blue);
-}
-
-.profile-button.is-active small {
-  color: #e9f3ff;
-}
-
-.profile-button.is-disabled {
-  opacity: 0.58;
 }
 
 .level-button {
@@ -318,6 +365,18 @@ button:active:not(:disabled) {
   line-height: 1;
 }
 
+.redeem-button {
+  width: 100%;
+  margin: 10px 0 4px;
+  color: #fff;
+  background: var(--berry);
+}
+
+.redeem-button:disabled {
+  color: #77828f;
+  background: #d8e2ea;
+}
+
 .jar-scene {
   position: relative;
   width: min(300px, 100%);
@@ -465,6 +524,15 @@ button:active:not(:disabled) {
 }
 
 @media (max-width: 820px) {
+  .app-topbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .overall-earning {
+    text-align: left;
+  }
+
   .game-shell {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -478,7 +546,6 @@ button:active:not(:disabled) {
 
 @media (max-width: 520px) {
   .title-row,
-  .profile-button,
   .question-topline {
     align-items: flex-start;
   }
@@ -487,7 +554,6 @@ button:active:not(:disabled) {
     flex-direction: column;
   }
 
-  .profile-row,
   .level-row,
   .money-board {
     grid-template-columns: 1fr;

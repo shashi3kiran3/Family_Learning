@@ -3,7 +3,8 @@ const answerForm = document.querySelector("#answer-form");
 const answerInput = document.querySelector("#answer-input");
 const feedback = document.querySelector("#feedback");
 const sessionPennies = document.querySelector("#session-pennies");
-const lifetimePennies = document.querySelector("#lifetime-pennies");
+const availablePennies = document.querySelector("#available-pennies");
+const availableDollars = document.querySelector("#available-dollars");
 const dollarTotal = document.querySelector("#dollar-total");
 const todayCorrect = document.querySelector("#today-correct");
 const todayMistakes = document.querySelector("#today-mistakes");
@@ -17,6 +18,7 @@ const roundLabel = document.querySelector("#round-label");
 const streakLabel = document.querySelector("#streak-label");
 const hintButton = document.querySelector("#hint-button");
 const nextButton = document.querySelector("#next-button");
+const redeemButton = document.querySelector("#redeem-button");
 const levelButtons = document.querySelectorAll(".level-button");
 
 const PENNIES_PER_DOLLAR = 250;
@@ -51,12 +53,20 @@ const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 function loadProfile() {
   const fallback = {
-    lifetimePennies: 0,
+    availablePennies: 0,
+    totalEarnedPennies: 0,
+    totalRedeemedPennies: 0,
     daily: {},
   };
 
   try {
-    return { ...fallback, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
+    const saved = { ...fallback, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
+    if (typeof saved.lifetimePennies === "number" && saved.availablePennies === 0) {
+      saved.availablePennies = saved.lifetimePennies;
+      saved.totalEarnedPennies = Math.max(saved.totalEarnedPennies, saved.lifetimePennies);
+      delete saved.lifetimePennies;
+    }
+    return saved;
   } catch {
     return fallback;
   }
@@ -248,7 +258,8 @@ function handleCorrect() {
 
   state.answered = true;
   state.sessionPennies += earned;
-  state.profile.lifetimePennies += earned;
+  state.profile.availablePennies += earned;
+  state.profile.totalEarnedPennies += earned;
   state.streak += 1;
   state.round += 1;
   today.correct += 1;
@@ -265,10 +276,10 @@ function handleCorrect() {
 
 function handleMistake() {
   const today = getToday();
-  const penalty = state.sessionPennies > 0 || state.profile.lifetimePennies > 0 ? 1 : 0;
+  const penalty = state.sessionPennies > 0 || state.profile.availablePennies > 0 ? 1 : 0;
 
   state.sessionPennies = Math.max(0, state.sessionPennies - penalty);
-  state.profile.lifetimePennies = Math.max(0, state.profile.lifetimePennies - penalty);
+  state.profile.availablePennies = Math.max(0, state.profile.availablePennies - penalty);
   state.streak = 0;
   today.mistakes += 1;
   today.earned = Math.max(0, today.earned - penalty);
@@ -287,12 +298,13 @@ function setFeedback(message, type) {
 
 function updateStats() {
   const today = getToday();
-  const dollars = state.profile.lifetimePennies / PENNIES_PER_DOLLAR;
+  const dollars = state.profile.availablePennies / PENNIES_PER_DOLLAR;
   const reward = nextReward();
   const setting = difficultySettings[state.difficulty];
 
   sessionPennies.textContent = `${state.sessionPennies}p`;
-  lifetimePennies.textContent = state.profile.lifetimePennies;
+  availablePennies.textContent = state.profile.availablePennies;
+  availableDollars.textContent = `$${dollars.toFixed(2)}`;
   dollarTotal.textContent = `$${dollars.toFixed(2)}`;
   todayCorrect.textContent = today.correct;
   todayMistakes.textContent = today.mistakes;
@@ -301,12 +313,13 @@ function updateStats() {
   roundLabel.textContent = `Question ${state.round}`;
   streakLabel.textContent = `Streak: ${state.streak}`;
   rewardPreview.textContent = `Next correct answer: +${reward} ${reward === 1 ? "penny" : "pennies"} (${setting.label})`;
-  progressFill.style.width = `${((state.profile.lifetimePennies % PENNIES_PER_DOLLAR) / PENNIES_PER_DOLLAR) * 100}%`;
+  progressFill.style.width = `${((state.profile.availablePennies % PENNIES_PER_DOLLAR) / PENNIES_PER_DOLLAR) * 100}%`;
+  redeemButton.disabled = state.profile.availablePennies === 0;
 }
 
 function drawJar() {
   coinJar.querySelectorAll(".coin").forEach((coin) => coin.remove());
-  const jarCoins = Math.min(40, state.profile.lifetimePennies % PENNIES_PER_DOLLAR);
+  const jarCoins = Math.min(40, state.profile.availablePennies % PENNIES_PER_DOLLAR);
 
   for (let index = 0; index < jarCoins; index += 1) {
     const coin = coinTemplate.content.firstElementChild.cloneNode(true);
@@ -316,6 +329,23 @@ function drawJar() {
     coin.style.bottom = `${8 + row * 24}px`;
     coinJar.appendChild(coin);
   }
+}
+
+function redeemReward() {
+  if (state.profile.availablePennies === 0) {
+    setFeedback("No pennies to redeem yet. Build the balance first.", "try");
+    return;
+  }
+
+  const redeemed = state.profile.availablePennies;
+  state.profile.totalRedeemedPennies += redeemed;
+  state.profile.availablePennies = 0;
+  state.sessionPennies = 0;
+  state.streak = 0;
+  saveProfile();
+  drawJar();
+  updateStats();
+  setFeedback(`Redeemed ${(redeemed / PENNIES_PER_DOLLAR).toFixed(2)} dollars. Balance reset to zero.`, "good");
 }
 
 hintButton.addEventListener("click", () => {
@@ -328,6 +358,8 @@ nextButton.addEventListener("click", () => {
   state.streak = 0;
   showQuestion();
 });
+
+redeemButton.addEventListener("click", redeemReward);
 
 levelButtons.forEach((button) => {
   button.addEventListener("click", () => {
