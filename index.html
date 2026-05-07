@@ -11,18 +11,30 @@
       <section class="play-area" aria-labelledby="game-title">
         <div class="title-row">
           <div>
-            <p class="eyebrow">2nd and 3rd grade practice</p>
+            <p class="eyebrow">Family math rewards</p>
             <h1 id="game-title">Family_Learning</h1>
           </div>
           <div class="score-card" aria-live="polite">
-            <span class="score-label">Pennies</span>
-            <strong id="coin-count">0</strong>
+            <span class="score-label">Session</span>
+            <strong id="session-pennies">0p</strong>
           </div>
         </div>
 
-        <div class="level-row" role="group" aria-label="Choose level">
-          <button class="level-button is-active" type="button" data-level="2">Grade 2</button>
-          <button class="level-button" type="button" data-level="3">Grade 3</button>
+        <div class="profile-row" role="group" aria-label="Choose learner">
+          <button class="profile-button is-active" type="button" data-user="harshith">
+            <span>Harshith</span>
+            <small>Active</small>
+          </button>
+          <button class="profile-button is-disabled" type="button" data-user="charith" disabled>
+            <span>Charith</span>
+            <small>Coming soon</small>
+          </button>
+        </div>
+
+        <div class="level-row" role="group" aria-label="Choose difficulty">
+          <button class="level-button is-active" type="button" data-difficulty="easy">Easy</button>
+          <button class="level-button" type="button" data-difficulty="medium">Medium</button>
+          <button class="level-button" type="button" data-difficulty="hard">Hard</button>
         </div>
 
         <div class="question-card">
@@ -30,6 +42,7 @@
             <span id="round-label">Question 1</span>
             <span id="streak-label">Streak: 0</span>
           </div>
+          <div class="reward-preview" id="reward-preview">Next correct answer: +1 penny</div>
           <p id="question-text" class="question-text"></p>
           <form id="answer-form" class="answer-form" autocomplete="off">
             <label class="sr-only" for="answer-input">Answer</label>
@@ -53,6 +66,16 @@
       </section>
 
       <aside class="reward-area" aria-label="Reward jar">
+        <div class="money-board">
+          <div>
+            <span>Lifetime reward</span>
+            <strong id="dollar-total">$0.00</strong>
+          </div>
+          <div>
+            <span>Pennies saved</span>
+            <strong id="lifetime-pennies">0</strong>
+          </div>
+        </div>
         <div class="jar-scene">
           <svg class="coin-spark" viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="60" r="46" fill="#f6be4f" />
@@ -64,10 +87,23 @@
           <div class="jar" id="coin-jar" aria-hidden="true"></div>
           <div class="jar-base"></div>
         </div>
-        <p class="goal-copy">Earn 10 pennies to fill the jar.</p>
+        <p class="goal-copy">250 pennies = $1.00 reward.</p>
         <div class="progress-track" aria-hidden="true">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
+        <section class="daily-report" aria-labelledby="daily-report-title">
+          <h2 id="daily-report-title">Today</h2>
+          <div class="report-grid">
+            <span>Correct</span>
+            <strong id="today-correct">0</strong>
+            <span>Mistakes</span>
+            <strong id="today-mistakes">0</strong>
+            <span>Earned</span>
+            <strong id="today-earned">0p</strong>
+            <span>Best streak</span>
+            <strong id="best-streak">0</strong>
+          </div>
+        </section>
       </aside>
     </main>
 
