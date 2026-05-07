@@ -10,8 +10,10 @@ const topAvailablePennies = document.querySelector("#top-available-pennies");
 const topTodayEarned = document.querySelector("#top-today-earned");
 const topBestStreak = document.querySelector("#top-best-streak");
 const totalRedeemed = document.querySelector("#total-redeemed");
+const todayAnswered = document.querySelector("#today-answered");
 const todayCorrect = document.querySelector("#today-correct");
 const todayMistakes = document.querySelector("#today-mistakes");
+const todaySkipped = document.querySelector("#today-skipped");
 const todayEarned = document.querySelector("#today-earned");
 const bestStreak = document.querySelector("#best-streak");
 const reportDate = document.querySelector("#report-date");
@@ -104,11 +106,21 @@ function getToday() {
     state.profile.daily[todayKey] = {
       correct: 0,
       mistakes: 0,
+      skipped: 0,
       earned: 0,
       bestStreak: 0,
     };
   }
-  return state.profile.daily[todayKey];
+  return normalizeDay(state.profile.daily[todayKey]);
+}
+
+function normalizeDay(day) {
+  day.correct = Number(day.correct) || 0;
+  day.mistakes = Number(day.mistakes) || 0;
+  day.skipped = Number(day.skipped) || 0;
+  day.earned = Number(day.earned) || 0;
+  day.bestStreak = Number(day.bestStreak) || 0;
+  return day;
 }
 
 function makeQuestion() {
@@ -347,8 +359,10 @@ function updateStats() {
   topTodayEarned.textContent = `${today.earned}p`;
   topBestStreak.textContent = today.bestStreak;
   totalRedeemed.textContent = `$${redeemedDollars.toFixed(2)}`;
+  todayAnswered.textContent = today.correct + today.mistakes;
   todayCorrect.textContent = today.correct;
   todayMistakes.textContent = today.mistakes;
+  todaySkipped.textContent = today.skipped;
   todayEarned.textContent = `${today.earned}p`;
   bestStreak.textContent = today.bestStreak;
   reportDate.textContent = new Date(`${todayKey}T12:00:00`).toLocaleDateString(undefined, {
@@ -373,8 +387,11 @@ function startTimer() {
     updateTimerDisplay();
     if (state.timeLeft === 0) {
       stopTimer();
+      const today = getToday();
       state.round += 1;
       state.streak = 0;
+      today.skipped += 1;
+      saveProfile();
       updateStats();
       setFeedback("Time is up. No penny lost, but the streak resets.", "try");
       window.setTimeout(showQuestion, 1000);
@@ -509,6 +526,7 @@ function renderHistory() {
   }
 
   historyList.innerHTML = days.map(([date, day]) => {
+    const normalizedDay = normalizeDay(day);
     const label = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
       month: "short",
       day: "numeric",
@@ -516,9 +534,10 @@ function renderHistory() {
     return `
       <div class="history-item">
         <strong>${label}</strong>
-        <span>${day.correct} correct</span>
-        <span>${day.mistakes} misses</span>
-        <span>${day.earned}p</span>
+        <span>${normalizedDay.correct + normalizedDay.mistakes} answered</span>
+        <span>${normalizedDay.skipped} skipped</span>
+        <span>${normalizedDay.mistakes} wrong</span>
+        <span>${normalizedDay.earned}p</span>
       </div>
     `;
   }).join("");
@@ -583,8 +602,11 @@ hintButton.addEventListener("click", () => {
 
 skipButton.addEventListener("click", () => {
   stopTimer();
+  const today = getToday();
   state.round += 1;
   state.streak = 0;
+  today.skipped += 1;
+  saveProfile();
   setFeedback("Skipped. No reward, no penalty.", "try");
   showQuestion();
 });

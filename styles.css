@@ -712,7 +712,7 @@ button:active:not(:disabled) {
 
 .history-item {
   display: grid;
-  grid-template-columns: 0.95fr repeat(3, auto);
+  grid-template-columns: 0.8fr repeat(4, auto);
   gap: 8px;
   align-items: center;
   padding: 9px 10px;
