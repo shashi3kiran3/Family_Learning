@@ -6,10 +6,17 @@ const sessionPennies = document.querySelector("#session-pennies");
 const availablePennies = document.querySelector("#available-pennies");
 const availableDollars = document.querySelector("#available-dollars");
 const dollarTotal = document.querySelector("#dollar-total");
+const topAvailablePennies = document.querySelector("#top-available-pennies");
+const topTodayEarned = document.querySelector("#top-today-earned");
+const topBestStreak = document.querySelector("#top-best-streak");
+const totalRedeemed = document.querySelector("#total-redeemed");
 const todayCorrect = document.querySelector("#today-correct");
 const todayMistakes = document.querySelector("#today-mistakes");
 const todayEarned = document.querySelector("#today-earned");
 const bestStreak = document.querySelector("#best-streak");
+const reportDate = document.querySelector("#report-date");
+const historyList = document.querySelector("#history-list");
+const backupStatus = document.querySelector("#backup-status");
 const rewardPreview = document.querySelector("#reward-preview");
 const coinJar = document.querySelector("#coin-jar");
 const coinTemplate = document.querySelector("#coin-template");
@@ -19,6 +26,8 @@ const streakLabel = document.querySelector("#streak-label");
 const hintButton = document.querySelector("#hint-button");
 const nextButton = document.querySelector("#next-button");
 const redeemButton = document.querySelector("#redeem-button");
+const exportButton = document.querySelector("#export-button");
+const importInput = document.querySelector("#import-input");
 const levelButtons = document.querySelectorAll(".level-button");
 
 const PENNIES_PER_DOLLAR = 250;
@@ -74,6 +83,7 @@ function loadProfile() {
 
 function saveProfile() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.profile));
+  backupStatus.textContent = "Saved in this browser automatically.";
 }
 
 function getToday() {
@@ -299,6 +309,7 @@ function setFeedback(message, type) {
 function updateStats() {
   const today = getToday();
   const dollars = state.profile.availablePennies / PENNIES_PER_DOLLAR;
+  const redeemedDollars = state.profile.totalRedeemedPennies / PENNIES_PER_DOLLAR;
   const reward = nextReward();
   const setting = difficultySettings[state.difficulty];
 
@@ -306,15 +317,25 @@ function updateStats() {
   availablePennies.textContent = state.profile.availablePennies;
   availableDollars.textContent = `$${dollars.toFixed(2)}`;
   dollarTotal.textContent = `$${dollars.toFixed(2)}`;
+  topAvailablePennies.textContent = state.profile.availablePennies;
+  topTodayEarned.textContent = `${today.earned}p`;
+  topBestStreak.textContent = today.bestStreak;
+  totalRedeemed.textContent = `$${redeemedDollars.toFixed(2)}`;
   todayCorrect.textContent = today.correct;
   todayMistakes.textContent = today.mistakes;
   todayEarned.textContent = `${today.earned}p`;
   bestStreak.textContent = today.bestStreak;
+  reportDate.textContent = new Date(`${todayKey}T12:00:00`).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
   roundLabel.textContent = `Question ${state.round}`;
   streakLabel.textContent = `Streak: ${state.streak}`;
   rewardPreview.textContent = `Next correct answer: +${reward} ${reward === 1 ? "penny" : "pennies"} (${setting.label})`;
   progressFill.style.width = `${((state.profile.availablePennies % PENNIES_PER_DOLLAR) / PENNIES_PER_DOLLAR) * 100}%`;
   redeemButton.disabled = state.profile.availablePennies === 0;
+  renderHistory();
 }
 
 function drawJar() {
@@ -348,6 +369,84 @@ function redeemReward() {
   setFeedback(`Redeemed ${(redeemed / PENNIES_PER_DOLLAR).toFixed(2)} dollars. Balance reset to zero.`, "good");
 }
 
+function renderHistory() {
+  const days = Object.entries(state.profile.daily)
+    .sort(([first], [second]) => second.localeCompare(first))
+    .slice(0, 7);
+
+  if (days.length === 0) {
+    historyList.innerHTML = `<p class="empty-history">No practice yet.</p>`;
+    return;
+  }
+
+  historyList.innerHTML = days.map(([date, day]) => {
+    const label = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    return `
+      <div class="history-item">
+        <strong>${label}</strong>
+        <span>${day.correct} correct</span>
+        <span>${day.mistakes} misses</span>
+        <span>${day.earned}p</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function exportData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    learner: state.user,
+    penniesPerDollar: PENNIES_PER_DOLLAR,
+    profile: state.profile,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `family-learning-harshith-${todayKey}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  backupStatus.textContent = "Backup JSON downloaded.";
+}
+
+function importData(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const parsed = JSON.parse(String(reader.result));
+      const importedProfile = parsed.profile ?? parsed;
+      if (!importedProfile.daily || typeof importedProfile.availablePennies !== "number") {
+        throw new Error("Invalid backup file");
+      }
+      state.profile = {
+        availablePennies: 0,
+        totalEarnedPennies: 0,
+        totalRedeemedPennies: 0,
+        daily: {},
+        ...importedProfile,
+      };
+      state.sessionPennies = 0;
+      state.streak = 0;
+      saveProfile();
+      drawJar();
+      updateStats();
+      backupStatus.textContent = "Backup restored successfully.";
+      setFeedback("Data restored. Harshith's balance is back.", "good");
+    } catch {
+      backupStatus.textContent = "That file does not look like a Family_Learning backup.";
+    } finally {
+      importInput.value = "";
+    }
+  });
+  reader.readAsText(file);
+}
+
 hintButton.addEventListener("click", () => {
   setFeedback(state.current.hint, "try");
   answerInput.focus();
@@ -360,6 +459,8 @@ nextButton.addEventListener("click", () => {
 });
 
 redeemButton.addEventListener("click", redeemReward);
+exportButton.addEventListener("click", exportData);
+importInput.addEventListener("change", importData);
 
 levelButtons.forEach((button) => {
   button.addEventListener("click", () => {

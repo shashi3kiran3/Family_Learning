@@ -22,6 +22,25 @@
       </div>
     </header>
 
+    <section class="stats-strip" aria-label="Harshith summary">
+      <div>
+        <span>Redeemable pennies</span>
+        <strong id="top-available-pennies">0</strong>
+      </div>
+      <div>
+        <span>Today's net</span>
+        <strong id="top-today-earned">0p</strong>
+      </div>
+      <div>
+        <span>Best streak today</span>
+        <strong id="top-best-streak">0</strong>
+      </div>
+      <div>
+        <span>Total redeemed</span>
+        <strong id="total-redeemed">$0.00</strong>
+      </div>
+    </section>
+
     <main class="game-shell">
       <section class="play-area" aria-labelledby="game-title">
         <div class="title-row">
@@ -96,8 +115,17 @@
         <div class="progress-track" aria-hidden="true">
           <div id="progress-fill" class="progress-fill"></div>
         </div>
-        <section class="daily-report" aria-labelledby="daily-report-title">
-          <h2 id="daily-report-title">Today</h2>
+      </aside>
+
+      <aside class="report-area" aria-labelledby="daily-report-title">
+        <section class="daily-report">
+          <div class="report-title-row">
+            <div>
+              <p class="section-label">Daily report</p>
+              <h2 id="daily-report-title">Today</h2>
+            </div>
+            <span id="report-date" class="report-date"></span>
+          </div>
           <div class="report-grid">
             <span>Correct</span>
             <strong id="today-correct">0</strong>
@@ -108,6 +136,21 @@
             <span>Best streak</span>
             <strong id="best-streak">0</strong>
           </div>
+        </section>
+
+        <section class="history-panel" aria-labelledby="history-title">
+          <h2 id="history-title">Recent days</h2>
+          <div id="history-list" class="history-list"></div>
+        </section>
+
+        <section class="backup-panel" aria-labelledby="backup-title">
+          <h2 id="backup-title">Data backup</h2>
+          <div class="backup-actions">
+            <button id="export-button" class="secondary-button" type="button">Export JSON</button>
+            <label class="import-button" for="import-input">Import JSON</label>
+            <input id="import-input" class="sr-only" type="file" accept="application/json,.json" />
+          </div>
+          <p id="backup-status" class="backup-status" aria-live="polite">Saved in this browser automatically.</p>
         </section>
       </aside>
     </main>
