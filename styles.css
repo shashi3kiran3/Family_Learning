@@ -55,7 +55,7 @@ button:disabled {
 
 .app-topbar {
   display: grid;
-  grid-template-columns: minmax(210px, 1fr) minmax(240px, 0.9fr) minmax(160px, auto);
+  grid-template-columns: minmax(210px, 1fr) minmax(240px, 0.9fr) auto minmax(160px, auto);
   gap: 16px;
   width: min(1440px, calc(100% - 32px));
   margin: 0 auto;
@@ -96,6 +96,23 @@ button:disabled {
 .profile-tab.is-disabled {
   color: var(--muted);
   opacity: 0.65;
+}
+
+.sound-toggle {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  font-weight: 900;
+  box-shadow: 0 10px 28px rgba(32, 49, 63, 0.1);
+}
+
+.sound-toggle[aria-pressed="true"] {
+  color: #fff;
+  background: var(--leaf);
+  border-color: var(--leaf);
 }
 
 .overall-earning {
@@ -465,7 +482,6 @@ button:active:not(:disabled) {
 
 .redeem-button {
   width: 100%;
-  margin: 10px 0 4px;
   color: #fff;
   background: var(--berry);
 }
@@ -473,6 +489,54 @@ button:active:not(:disabled) {
 .redeem-button:disabled {
   color: #77828f;
   background: #d8e2ea;
+}
+
+.redeem-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 4px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7fbff;
+  border: 2px solid #d8e9f4;
+}
+
+.redeem-box label {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.redeem-entry {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #fff;
+  border: 2px solid #bfd7e8;
+}
+
+.redeem-entry span {
+  color: #855b16;
+  font-weight: 900;
+}
+
+.redeem-entry input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  padding-left: 6px;
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 900;
+  background: transparent;
 }
 
 .jar-scene {
@@ -790,6 +854,7 @@ button:active:not(:disabled) {
   .level-row,
   .money-board,
   .stats-strip,
+  .redeem-box,
   .backup-actions {
     grid-template-columns: 1fr;
   }

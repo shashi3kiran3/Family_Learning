@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Family_Learning</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=5" />
   </head>
   <body>
     <header class="app-topbar" aria-label="Learner and earnings">
@@ -16,6 +16,7 @@
         <button class="profile-tab is-active" type="button" data-user="harshith" role="tab" aria-selected="true">Harshith</button>
         <button class="profile-tab is-disabled" type="button" data-user="charith" role="tab" aria-selected="false" disabled>Charith</button>
       </div>
+      <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="false">Sound off</button>
       <div class="overall-earning" aria-live="polite">
         <span>Overall earning</span>
         <strong id="dollar-total">$0.00</strong>
@@ -103,7 +104,15 @@
             <strong id="available-pennies">0</strong>
           </div>
         </div>
-        <button id="redeem-button" class="redeem-button" type="button">Redeem reward</button>
+        <div class="redeem-box">
+          <label for="redeem-dollars">Redeem amount</label>
+          <div class="redeem-entry">
+            <span>$</span>
+            <input id="redeem-dollars" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <button id="redeem-button" class="redeem-button" type="button">Redeem</button>
+          <button id="redeem-all-button" class="secondary-button" type="button">Redeem all</button>
+        </div>
         <div class="jar-scene">
           <svg class="coin-spark" viewBox="0 0 120 120" aria-hidden="true">
             <circle cx="60" cy="60" r="46" fill="#f6be4f" />
@@ -163,6 +172,6 @@
       <span class="coin" aria-hidden="true"></span>
     </template>
 
-    <script src="./script.js"></script>
+    <script src="./script.js?v=5"></script>
   </body>
 </html>

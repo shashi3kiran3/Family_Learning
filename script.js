@@ -28,6 +28,9 @@ const timerFill = document.querySelector("#timer-fill");
 const hintButton = document.querySelector("#hint-button");
 const skipButton = document.querySelector("#skip-button");
 const redeemButton = document.querySelector("#redeem-button");
+const redeemAllButton = document.querySelector("#redeem-all-button");
+const redeemDollars = document.querySelector("#redeem-dollars");
+const soundToggle = document.querySelector("#sound-toggle");
 const exportButton = document.querySelector("#export-button");
 const importInput = document.querySelector("#import-input");
 const levelButtons = document.querySelectorAll(".level-button");
@@ -56,6 +59,8 @@ const state = {
   timeLeft: QUESTION_SECONDS,
   timerId: null,
   questionStartedAt: Date.now(),
+  soundOn: false,
+  audioContext: null,
   profile: loadProfile(),
 };
 
@@ -294,6 +299,7 @@ function handleCorrect() {
   saveProfile();
   setFeedback(`${praise[rand(0, praise.length - 1)]} +${earned} pennies${speedBonus ? " with speed bonus." : "."}`, "good");
   animateRewardChange(speedBonus ? `+${earned} fast` : `+${earned}`);
+  playSound(speedBonus ? "fast" : "correct");
   drawJar();
   updateStats();
   answerInput.disabled = true;
@@ -316,6 +322,7 @@ function handleMistake() {
   updateStats();
   setFeedback(`Not yet. -${penalty} penny from the jar. Try again carefully.`, "try");
   animateRewardChange(penalty ? "-1" : "0");
+  playSound("wrong");
   answerInput.select();
   startTimer();
 }
@@ -354,6 +361,8 @@ function updateStats() {
   rewardPreview.textContent = `Next correct answer: +${reward} ${reward === 1 ? "penny" : "pennies"} (${setting.label}); quick answer adds +${QUICK_BONUS}`;
   progressFill.style.width = `${((state.profile.availablePennies % PENNIES_PER_DOLLAR) / PENNIES_PER_DOLLAR) * 100}%`;
   redeemButton.disabled = state.profile.availablePennies === 0;
+  redeemAllButton.disabled = state.profile.availablePennies === 0;
+  redeemDollars.max = (state.profile.availablePennies / PENNIES_PER_DOLLAR).toFixed(2);
   renderHistory();
 }
 
@@ -410,21 +419,83 @@ function drawJar() {
   }
 }
 
-function redeemReward() {
+function redeemReward(redeemAll = false) {
   if (state.profile.availablePennies === 0) {
     setFeedback("No pennies to redeem yet. Build the balance first.", "try");
     return;
   }
 
-  const redeemed = state.profile.availablePennies;
+  const requestedDollars = redeemAll ? state.profile.availablePennies / PENNIES_PER_DOLLAR : Number(redeemDollars.value);
+  if (!redeemAll && (!Number.isFinite(requestedDollars) || requestedDollars <= 0)) {
+    setFeedback("Enter a dollar amount to redeem.", "try");
+    redeemDollars.focus();
+    return;
+  }
+
+  const requestedPennies = Math.round(requestedDollars * PENNIES_PER_DOLLAR);
+  const redeemed = Math.min(state.profile.availablePennies, requestedPennies);
+  if (redeemed <= 0) {
+    setFeedback("That amount is too small to redeem.", "try");
+    return;
+  }
+
   state.profile.totalRedeemedPennies += redeemed;
-  state.profile.availablePennies = 0;
-  state.sessionPennies = 0;
+  state.profile.availablePennies = Math.max(0, state.profile.availablePennies - redeemed);
+  state.sessionPennies = Math.max(0, state.sessionPennies - redeemed);
   state.streak = 0;
+  redeemDollars.value = "";
   saveProfile();
   drawJar();
   updateStats();
-  setFeedback(`Redeemed ${(redeemed / PENNIES_PER_DOLLAR).toFixed(2)} dollars. Balance reset to zero.`, "good");
+  playSound("redeem");
+  setFeedback(`Redeemed $${(redeemed / PENNIES_PER_DOLLAR).toFixed(2)}. Remaining balance: $${(state.profile.availablePennies / PENNIES_PER_DOLLAR).toFixed(2)}.`, "good");
+}
+
+function toggleSound() {
+  state.soundOn = !state.soundOn;
+  soundToggle.textContent = state.soundOn ? "Sound on" : "Sound off";
+  soundToggle.setAttribute("aria-pressed", String(state.soundOn));
+  if (state.soundOn) {
+    ensureAudioContext();
+    playSound("toggle");
+  }
+}
+
+function ensureAudioContext() {
+  if (!state.audioContext) {
+    state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (state.audioContext.state === "suspended") {
+    state.audioContext.resume();
+  }
+}
+
+function playSound(type) {
+  if (!state.soundOn) return;
+  ensureAudioContext();
+
+  const patterns = {
+    correct: [660, 880],
+    fast: [880, 1175, 1320],
+    wrong: [220, 165],
+    redeem: [523, 659, 784, 1046],
+    toggle: [440],
+  };
+  const notes = patterns[type] ?? patterns.correct;
+  notes.forEach((frequency, index) => {
+    const start = state.audioContext.currentTime + index * 0.075;
+    const oscillator = state.audioContext.createOscillator();
+    const gain = state.audioContext.createGain();
+    oscillator.type = type === "wrong" ? "sawtooth" : "sine";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.001, start);
+    gain.gain.exponentialRampToValueAtTime(0.12, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.14);
+    oscillator.connect(gain);
+    gain.connect(state.audioContext.destination);
+    oscillator.start(start);
+    oscillator.stop(start + 0.16);
+  });
 }
 
 function renderHistory() {
@@ -518,7 +589,9 @@ skipButton.addEventListener("click", () => {
   showQuestion();
 });
 
-redeemButton.addEventListener("click", redeemReward);
+redeemButton.addEventListener("click", () => redeemReward(false));
+redeemAllButton.addEventListener("click", () => redeemReward(true));
+soundToggle.addEventListener("click", toggleSound);
 exportButton.addEventListener("click", exportData);
 importInput.addEventListener("change", importData);
 
