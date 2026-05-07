@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Family_Learning</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="play-area" aria-labelledby="game-title">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">2nd and 3rd grade practice</p>
+            <h1 id="game-title">Family_Learning</h1>
+          </div>
+          <div class="score-card" aria-live="polite">
+            <span class="score-label">Pennies</span>
+            <strong id="coin-count">0</strong>
+          </div>
+        </div>
+
+        <div class="level-row" role="group" aria-label="Choose level">
+          <button class="level-button is-active" type="button" data-level="2">Grade 2</button>
+          <button class="level-button" type="button" data-level="3">Grade 3</button>
+        </div>
+
+        <div class="question-card">
+          <div class="question-topline">
+            <span id="round-label">Question 1</span>
+            <span id="streak-label">Streak: 0</span>
+          </div>
+          <p id="question-text" class="question-text"></p>
+          <form id="answer-form" class="answer-form" autocomplete="off">
+            <label class="sr-only" for="answer-input">Answer</label>
+            <input
+              id="answer-input"
+              inputmode="numeric"
+              pattern="[0-9-]*"
+              type="text"
+              placeholder="Type answer"
+              aria-describedby="feedback"
+            />
+            <button type="submit">Check</button>
+          </form>
+          <p id="feedback" class="feedback" aria-live="polite"></p>
+        </div>
+
+        <div class="actions">
+          <button id="hint-button" class="secondary-button" type="button">Hint</button>
+          <button id="next-button" class="secondary-button" type="button">New question</button>
+        </div>
+      </section>
+
+      <aside class="reward-area" aria-label="Reward jar">
+        <div class="jar-scene">
+          <svg class="coin-spark" viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="46" fill="#f6be4f" />
+            <circle cx="60" cy="60" r="34" fill="#ffd86f" />
+            <path d="M48 74c8 6 19 6 27 0" fill="none" stroke="#986118" stroke-width="6" stroke-linecap="round" />
+            <circle cx="47" cy="52" r="5" fill="#8d5a16" />
+            <circle cx="73" cy="52" r="5" fill="#8d5a16" />
+          </svg>
+          <div class="jar" id="coin-jar" aria-hidden="true"></div>
+          <div class="jar-base"></div>
+        </div>
+        <p class="goal-copy">Earn 10 pennies to fill the jar.</p>
+        <div class="progress-track" aria-hidden="true">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+      </aside>
+    </main>
+
+    <template id="coin-template">
+      <span class="coin" aria-hidden="true"></span>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
