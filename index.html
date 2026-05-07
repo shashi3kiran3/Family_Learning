@@ -63,7 +63,11 @@
         <div class="question-card">
           <div class="question-topline">
             <span id="round-label">Question 1</span>
+            <span id="timer-label" class="timer-label">30s</span>
             <span id="streak-label">Streak: 0</span>
+          </div>
+          <div class="timer-track" aria-hidden="true">
+            <div id="timer-fill" class="timer-fill"></div>
           </div>
           <div class="reward-preview" id="reward-preview">Next correct answer: +1 penny</div>
           <p id="question-text" class="question-text"></p>
@@ -84,7 +88,7 @@
 
         <div class="actions">
           <button id="hint-button" class="secondary-button" type="button">Hint</button>
-          <button id="next-button" class="secondary-button" type="button">New question</button>
+          <button id="skip-button" class="secondary-button" type="button">Skip question</button>
         </div>
       </section>
 

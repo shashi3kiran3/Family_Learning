@@ -289,10 +289,48 @@ h2 {
 .reward-preview {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   color: var(--muted);
   font-size: 0.95rem;
   font-weight: 900;
+}
+
+.timer-label {
+  min-width: 58px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-align: center;
+  color: #1f6a45;
+  background: #dff6e8;
+  border: 2px solid #a8dfbd;
+}
+
+.timer-label.is-low {
+  color: #a33820;
+  background: #ffe1d8;
+  border-color: #f0a38d;
+  animation: pulse 520ms ease-in-out infinite alternate;
+}
+
+.timer-track {
+  height: 12px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #d7e5ee;
+}
+
+.timer-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f9b65, #f7bd42);
+  transition: width 240ms linear, background 160ms ease;
+}
+
+.timer-fill.is-low {
+  background: linear-gradient(90deg, #f7bd42, #e7606f);
 }
 
 .reward-preview {
@@ -508,6 +546,23 @@ button:active:not(:disabled) {
   font-weight: 900;
 }
 
+.reward-pop {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 3;
+  min-width: 66px;
+  transform: translate(-50%, -50%);
+  padding: 8px 10px;
+  border-radius: 999px;
+  color: #7a4c0d;
+  background: #fff0ba;
+  border: 2px solid #f4cc62;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(132, 86, 18, 0.18);
+  animation: rewardFloat 900ms ease-out forwards;
+}
+
 .goal-copy {
   margin: 0 0 12px;
   color: var(--muted);
@@ -670,6 +725,30 @@ button:active:not(:disabled) {
   to {
     transform: translateY(0) scale(1) rotate(0);
     opacity: 1;
+  }
+}
+
+@keyframes rewardFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.76);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70px) scale(0.92);
+  }
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
   }
 }
 
